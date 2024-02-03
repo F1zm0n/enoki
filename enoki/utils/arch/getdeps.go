@@ -1,0 +1,3 @@
+package arch
+
+func GetDepsPacman()
