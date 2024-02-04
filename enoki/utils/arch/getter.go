@@ -1,19 +1,21 @@
 package arch
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
-	"runtime"
+	"time"
 
 	"github.com/F1zm0n/enoki/enoki/utils/entity"
 	scrapper "github.com/F1zm0n/enoki/enoki/utils/pkg/getter"
 )
 
-func GetPacman(pkgName, OsArch string) ([]byte, error) {
+func GetPacman(ctx context.Context, pkgName, OsArch string) ([]byte, error) {
 	pacURl := "https://archlinux.org/packages/extra/" + OsArch + "/" + pkgName + "/download"
 
-	data, err := scrapper.GetFromRepo(pacURl)
+	data, err := scrapper.GetFromRepo(ctx, pacURl)
 	if err != nil {
 		return nil, err
 	}
@@ -21,17 +23,8 @@ func GetPacman(pkgName, OsArch string) ([]byte, error) {
 	return data, nil
 }
 
-// GetFromPacmanBoth gets the data from pacman either for x86_64 arch or for any based on given
-// which variable should be x86_64 for x86_64 arch
-func GetFromPacmanBoth(arch string, pkgName string) ([]byte, error) {
-	if arch == "x86_64" {
-		dat, err := GetPacman(pkgName, "x86_64")
-		if err != nil {
-			return nil, err
-		}
-		return dat, nil
-	}
-	dat, err := GetPacman(pkgName, "any")
+func GetFromPacmanBoth(ctx context.Context, arch string, pkgName string) ([]byte, error) {
+	dat, err := GetPacman(ctx, pkgName, arch)
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +34,10 @@ func GetFromPacmanBoth(arch string, pkgName string) ([]byte, error) {
 
 // GetPkgInfoPac gets the json info about package you give and returns 2 channels
 // 1 for architercture to download and 2 for info
-func GetPkgInfoPac(OsArch, pkgName string) (entity.ArchInfo, error) {
-	url := "https://archlinux.org/packages/extra/" + OsArch + "/" + pkgName + "/json"
+func GetPkgInfoPac(ctx context.Context, repo, OsArch, pkgName string) (entity.ArchInfo, error) {
+	url := "https://archlinux.org/packages/" + repo + "/" + OsArch + "/" + pkgName + "/json"
+
+	fmt.Println(url)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 
@@ -51,6 +46,9 @@ func GetPkgInfoPac(OsArch, pkgName string) (entity.ArchInfo, error) {
 	res, err := client.Do(req)
 	if err != nil {
 		return entity.ArchInfo{}, err
+	}
+	if res.StatusCode != 200 {
+		return entity.ArchInfo{}, ErrNoSuchPackage
 	}
 
 	var info entity.ArchInfo
@@ -66,26 +64,38 @@ func GetPkgInfoPac(OsArch, pkgName string) (entity.ArchInfo, error) {
 	if err != nil {
 		return entity.ArchInfo{}, err
 	}
+	fmt.Println(info)
 
 	return info, nil
 }
 
-func GetPkgInfoBoth(pkgName string) (entity.ArchInfo, error) {
-	arch := runtime.GOARCH
+func GetPkgInfoBoth(
+	timeout time.Duration,
+	repos []string,
+	arch string,
+	pkgName string,
+) (entity.ArchInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	for _, repo := range repos {
+		if arch == "x86_64" {
 
-	if arch == "amd64" {
-		dat, err := GetPkgInfoPac("x86_64", pkgName)
-		if err != nil {
-			return entity.ArchInfo{}, err
+			dat, err := GetPkgInfoPac(ctx, repo, arch, pkgName)
+			if err != nil {
+				dat, err := GetPkgInfoPac(ctx, repo, "any", pkgName)
+				if err == nil {
+					return dat, nil
+				}
+			}
+			return dat, nil
 		}
 
-		return dat, nil
+		dat, err := GetPkgInfoPac(ctx, repo, arch, pkgName)
+		if err == nil {
+			return dat, nil
+		}
+
 	}
 
-	dat, err := GetPkgInfoPac("any", pkgName)
-	if err != nil {
-		return entity.ArchInfo{}, err
-	}
-
-	return dat, nil
+	return entity.ArchInfo{}, ErrNoSuchPackage
 }

@@ -6,11 +6,18 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/F1zm0n/enoki/enoki/utils/arch"
+	"github.com/F1zm0n/enoki/enoki/utils/pkg/cli"
+	getarchitecture "github.com/F1zm0n/enoki/enoki/utils/pkg/get_architecture"
+	pkgremover "github.com/F1zm0n/enoki/enoki/utils/pkg/pkgRemover"
 )
+
+const yNLabel = "are you sure you want to do this?"
 
 // installCmd represents the install command
 var installCmd = &cobra.Command{
@@ -21,15 +28,69 @@ var installCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
+		installedDeps := make([]string, 0)
+
+		archi := runtime.GOARCH
+
+		archi = getarchitecture.GetArchitecture(archi)
+
+		// timeout, err := time.ParseDuration(os.Getenv("CTX_TIMEOUT")) // сделать адекватно
+		// if err != nil {
+		// fmt.Println("uknown error timeout not specified")
+		// return
+		// }
+		timeout := 20 * time.Second // убрать эту хуйню
+
 		pkgName := args[0]
 		if pacman {
+			info, err := arch.GetPkgInfoBoth(timeout, archi, pkgName)
+			if err != nil {
+				fmt.Println("no package found or another error ", err)
+				return
+			}
+
+			YOrN := cli.YesNoPrompt(yNLabel, false)
+			if !YOrN {
+				return
+			}
+
 			pacmanPath := os.Getenv("PACMAN_PATH")
 
-			if err := arch.UnpakAndInstPacman(pkgName, pacmanPath); err != nil {
-				fmt.Println("print error")
+			pacmanPath = "~/Files/" // Поменять это убрать
+
+			installedDeps, err = arch.InstDepsPacman(timeout, info, pacmanPath, installedDeps)
+			if err != nil {
+				fmt.Println("error occured while trying to install packages")
+				fmt.Println("please wait")
+				fmt.Println("exiting with safe mode")
+				err = pkgremover.RemovePkgs(installedDeps, pacmanPath)
+				if err != nil {
+					fmt.Println("couldn't remove all packages ", err)
+					return
+				}
+				return
+			}
+
+			installedDeps, err = arch.UnpakAndInstPacman(
+				timeout,
+				installedDeps,
+				info.Arch,
+				pkgName,
+				pacmanPath,
+			)
+			if err != nil {
+				fmt.Println("error occured while trying to install packages")
+				fmt.Println("please wait")
+				fmt.Println("exiting with safe mode")
+				err = pkgremover.RemovePkgs(installedDeps, pacmanPath)
+				if err != nil {
+					fmt.Println("couldn't remove all packages ", err)
+					return
+				}
 				return
 			}
 		}
+		fmt.Println("installed everything")
 	},
 }
 var pacman bool
