@@ -9,14 +9,16 @@ import (
 
 func InstDepsPacman(
 	timeout time.Duration,
+	repos []string,
 	pkgInfo entity.ArchInfo,
+	pkgArch string,
 	dir string,
 	arr []string,
 ) ([]string, error) {
 	var err error = nil
 
 	for _, pkg := range pkgInfo.Depends {
-		arr, err = UnpakAndInstPacman(timeout, arr, pkgInfo.Arch, pkg, dir)
+		arr, err = UnpakAndInstPacman(timeout, arr, repos, pkgArch, pkg, dir)
 		fmt.Println("deps")
 		if err != nil {
 			fmt.Println("deps,error")

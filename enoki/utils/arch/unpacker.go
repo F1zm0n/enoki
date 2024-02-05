@@ -16,12 +16,13 @@ import (
 func UnpakAndInstPacman(
 	timeout time.Duration,
 	arr []string,
+	repos []string,
 	archName, pkgname, dir string,
 ) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	data, err := GetFromPacmanBoth(ctx, archName, pkgname)
+	data, err := GetFromPacmanBoth(ctx, repos, archName, pkgname)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +42,9 @@ func UnpakAndInstPacman(
 		if err == io.EOF {
 			break
 		}
-		fmt.Println(pkgname, archName)
+		fmt.Println(pkgname + "nigga" + archName)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		fmt.Println(header.Name)
 		arr = append(arr, header.Name)

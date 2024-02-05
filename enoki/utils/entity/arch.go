@@ -30,3 +30,7 @@ type ArchInfo struct {
 	MakeDepends    []string   `json:"makedepends"`
 	CheckDepends   []string   `json:"checkdepends"`
 }
+
+type InstallInfo struct {
+	PackageNames []string
+}

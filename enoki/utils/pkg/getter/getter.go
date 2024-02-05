@@ -4,6 +4,8 @@ import (
 	"context"
 	"io"
 	"net/http"
+
+	apperror "github.com/F1zm0n/enoki/enoki/utils/pkg/AppErro"
 )
 
 func GetFromRepo(ctx context.Context, url string) ([]byte, error) {
@@ -16,6 +18,9 @@ func GetFromRepo(ctx context.Context, url string) ([]byte, error) {
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
+	}
+	if res.StatusCode != 200 {
+		return nil, apperror.ErrNoSuchPkg
 	}
 
 	body, err := io.ReadAll(res.Body)
