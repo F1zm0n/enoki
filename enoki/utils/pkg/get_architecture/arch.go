@@ -1,6 +1,9 @@
 package getarchitecture
 
-func GetArchitecture(arch string) string {
+import "runtime"
+
+func GetArchitecture() string {
+	arch := runtime.GOOS
 	if arch == "amd64" {
 		return "x86_64"
 	}

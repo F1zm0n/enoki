@@ -1,14 +1,13 @@
 package scrapper
 
 import (
-	"context"
 	"io"
 	"net/http"
 
 	apperror "github.com/F1zm0n/enoki/enoki/utils/pkg/AppErro"
 )
 
-func GetFromRepo(ctx context.Context, url string) ([]byte, error) {
+func GetFromRepo(url string) ([]byte, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

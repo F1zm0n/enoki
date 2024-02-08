@@ -1,6 +1,8 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type ArchInfo struct {
 	PkgName        string     `json:"pkgname"`
@@ -31,6 +33,11 @@ type ArchInfo struct {
 	CheckDepends   []string   `json:"checkdepends"`
 }
 
-type InstallInfo struct {
-	PackageNames []string
+type PkgPacman struct {
+	Version  float64    `json:"version"`
+	Limit    int        `json:"limit"`
+	Valid    bool       `json:"valid"`
+	Result   []ArchInfo `json:"results"`
+	NumPages int        `json:"num_pages"`
+	Page     int        `json:"page"`
 }

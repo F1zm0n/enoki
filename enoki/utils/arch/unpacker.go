@@ -3,26 +3,25 @@ package arch
 import (
 	"archive/tar"
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/klauspost/compress/zstd"
 )
 
 func UnpakAndInstPacman(
-	timeout time.Duration,
-	arr []string,
 	repos []string,
 	archName, pkgname, dir string,
 ) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	arr := make([]string, 0)
+	data, err := GetFromPacmanBoth(repos, archName, pkgname)
+	if err != nil {
+		return nil, err
+	}
 
-	data, err := GetFromPacmanBoth(ctx, repos, archName, pkgname)
+	err = os.Chdir(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -68,4 +67,23 @@ func UnpakAndInstPacman(
 
 	fmt.Println("installed ", pkgname)
 	return arr, nil
+}
+
+func InstallPkgInDir(path string, pkg string) (*os.File, error) {
+	if pkg == ".BUILDINFO" || pkg == ".MTREE" || pkg == ".PKGINFO" || pkg == ".INSTALL" {
+		err := os.Chdir(path)
+		if err != nil {
+			return nil, err
+		}
+		f, err := os.Create(pkg)
+		if err != nil {
+			return nil, err
+		}
+		return f, nil
+	}
+	f, err := os.Create(pkg)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }
