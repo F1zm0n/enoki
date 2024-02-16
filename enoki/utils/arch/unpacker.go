@@ -14,16 +14,16 @@ import (
 	"github.com/F1zm0n/enoki/enoki/utils/entity"
 )
 
-func UnpakAndInstPacman(info entity.ArchInfo, hoster string, pathDir string) ([]string, error) {
+func (a *PacmanApp) UnpakAndInstPacman(info entity.ArchInfo) ([]string, error) {
 	fmt.Println(info.PkgName)
 	arr := make([]string, 0)
-	data, err := GetFromPacman(info, []string{"x86_64", "any"}, hoster)
+	data, err := a.GetFromPacman(info)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println("this pkg: ", info.PkgName)
 
-	dir := pathDir + "/" + info.PkgName
+	dir := a.Path + "/" + info.PkgName
 
 	err = os.MkdirAll(dir, 0770)
 
@@ -77,23 +77,4 @@ func UnpakAndInstPacman(info entity.ArchInfo, hoster string, pathDir string) ([]
 
 	fmt.Println("installed ", info.PkgName)
 	return arr, nil
-}
-
-func InstallPkgInDir(path string, pkg string) (*os.File, error) {
-	if pkg == ".BUILDINFO" || pkg == ".MTREE" || pkg == ".PKGINFO" || pkg == ".INSTALL" {
-		err := os.Chdir(path)
-		if err != nil {
-			return nil, err
-		}
-		f, err := os.Create(pkg)
-		if err != nil {
-			return nil, err
-		}
-		return f, nil
-	}
-	f, err := os.Create(pkg)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
 }

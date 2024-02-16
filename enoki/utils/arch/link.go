@@ -1,17 +1,18 @@
 package arch
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
 
+	pacutils "github.com/F1zm0n/enoki/enoki/utils/arch/utils"
 	apperror "github.com/F1zm0n/enoki/enoki/utils/pkg/AppErro"
 	scrapper "github.com/F1zm0n/enoki/enoki/utils/pkg/getter"
 )
 
-func GetMirrorHost(conf map[string]string) (string, error) {
+// GetMirrorHost makes request to arch mirror link repository and appends to
+// PacmanApp struct MirrorLinks field
+func (a *PacmanApp) GetMirrorHost(conf map[string]string) error {
 	if country, ok := conf["country"]; ok {
 
 		url := fmt.Sprintf(
@@ -20,50 +21,31 @@ func GetMirrorHost(conf map[string]string) (string, error) {
 		)
 		dat, err := scrapper.GetReq(url)
 		if err != nil {
-			return "", err
+			return err
 		}
 
-		arr, err := ParseMirrors(dat)
+		arr, err := pacutils.ParseMirrors(dat)
 		if err != nil {
-			return "", err
+			return err
 		}
 		if index, ok := conf["number"]; ok {
 			idx, err := strconv.Atoi(index)
 			if err != nil {
 				fmt.Println("config error")
-				return "", err
+				return err
 			}
-			return arr[idx+1], nil
+			fmt.Println("get some normal mirror links here arch/conf.go", arr[idx+1])
+			return nil
 		} else {
-			return arr[1], nil
+			return nil
 		}
 
 	}
 	if link, ok := conf["link"]; ok {
 		arr := strings.Split(link, "/")
-		return arr[2], nil
+		fmt.Println("fix this in arch/conf", arr)
+		return nil
 	}
 	fmt.Println("config error")
-	return "", apperror.BreakErr
-}
-
-func ParseMirrors(data []byte) ([]string, error) {
-	f := bytes.NewReader(data)
-
-	arr := make([]string, 0)
-
-	scanner := bufio.NewScanner(f)
-
-	scanner.Split(bufio.ScanLines)
-
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), "##") {
-			continue
-		}
-		mirror := strings.Trim(scanner.Text(), "#Server =")
-		mirror = strings.TrimSpace(mirror)
-		arr = append(arr, mirror)
-	}
-
-	return arr, nil
+	return apperror.BreakErr
 }

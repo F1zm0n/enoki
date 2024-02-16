@@ -1,8 +1,7 @@
 package buildApp
 
+import "github.com/F1zm0n/enoki/enoki/utils/arch"
+
 type App struct {
-	PacmanRepos []string
-	Arch        string
-	PkgName     string
-	PacmanPath  string
+	Pacman arch.IPacmanApp
 }

@@ -4,12 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
-
-	buildApp "github.com/F1zm0n/enoki/enoki/utils/app"
-	getarchitecture "github.com/F1zm0n/enoki/enoki/utils/pkg/get_architecture"
 )
 
 const (
@@ -25,25 +20,7 @@ var installCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
-		archi := getarchitecture.GetArchitecture()
-
-		pkgName := args[0]
-
-		app := &buildApp.App{
-			Arch:    archi,
-			PkgName: pkgName,
-		}
-
-		if pacman {
-			app.PacmanPath = "~/Files/"
-			app.PacmanRepos = []string{"extra", "core", "multilib"}
-
-			err := app.LaunchPacman(yNLabel)
-			if err != nil {
-				return
-			}
-		}
-		fmt.Println("installed everything")
+		// TODO make pacman here
 	},
 }
 var pacman bool
