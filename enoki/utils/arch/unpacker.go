@@ -3,21 +3,31 @@ package arch
 import (
 	"archive/tar"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
 	"github.com/klauspost/compress/zstd"
+
+	"github.com/F1zm0n/enoki/enoki/utils/entity"
 )
 
-func UnpakAndInstPacman(
-	repos []string,
-	archName, pkgname, dir string,
-) ([]string, error) {
+func UnpakAndInstPacman(info entity.ArchInfo, hoster string, pathDir string) ([]string, error) {
+	fmt.Println(info.PkgName)
 	arr := make([]string, 0)
-	data, err := GetFromPacmanBoth(repos, archName, pkgname)
+	data, err := GetFromPacman(info, []string{"x86_64", "any"}, hoster)
 	if err != nil {
+		return nil, err
+	}
+	fmt.Println("this pkg: ", info.PkgName)
+
+	dir := pathDir + "/" + info.PkgName
+
+	err = os.MkdirAll(dir, 0770)
+
+	if !errors.Is(err, os.ErrExist) {
 		return nil, err
 	}
 
@@ -38,10 +48,10 @@ func UnpakAndInstPacman(
 	// Iterate through the files in the tar archive
 	for {
 		header, err := tr.Next()
+		fmt.Println(header.Name)
 		if err == io.EOF {
 			break
 		}
-		fmt.Println(pkgname + "nigga" + archName)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +75,7 @@ func UnpakAndInstPacman(
 		}
 	}
 
-	fmt.Println("installed ", pkgname)
+	fmt.Println("installed ", info.PkgName)
 	return arr, nil
 }
 

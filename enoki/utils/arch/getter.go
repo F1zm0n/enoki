@@ -12,8 +12,25 @@ import (
 	scrapper "github.com/F1zm0n/enoki/enoki/utils/pkg/getter"
 )
 
-// func GetPkgList(deps []string) ([]string, error) {
-// }
+func GetFromPacman(info entity.ArchInfo, arches []string, hoster string) ([]byte, error) {
+	for _, archi := range arches {
+		pacURL := fmt.Sprintf(
+			"https://%s/archlinux/%s/os/%s/%s",
+			hoster,
+			info.Repo,
+			archi,
+			info.Filename,
+		)
+		body, err := scrapper.GetReq(pacURL)
+		if err != nil {
+			continue
+		} else {
+			return body, nil
+		}
+	}
+
+	return nil, ErrNoSuchPackage
+}
 
 func GetPacman(repo, pkgName, OsArch string) ([]byte, error) {
 	pacURl := "https://archlinux.org/packages/" + repo + "/" + OsArch + "/" + pkgName + "/download"
@@ -45,10 +62,10 @@ func GetFromPacmanBoth(repos []string, arch string, pkgName string) ([]byte, err
 		var dat []byte
 		var err error
 
-		if arch == "x86_64" {
-			dat, err = GetPacman(repo, pkgName, arch)
+		if arch == "any" {
+			dat, err = GetPacman(repo, pkgName, "x86_64")
 			if err != nil {
-				dat, err = GetPacman(repo, pkgName, "x86_64")
+				dat, err = GetPacman(repo, pkgName, arch)
 			}
 		} else {
 			dat, err = GetPacman(repo, pkgName, arch)
@@ -72,8 +89,6 @@ func GetFromPacmanBoth(repos []string, arch string, pkgName string) ([]byte, err
 
 func GetPkgInfoPac(repo, OsArch, pkgName string) (entity.ArchInfo, error) {
 	url := "https://archlinux.org/packages/" + repo + "/" + OsArch + "/" + pkgName + "/json"
-
-	fmt.Println(url)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 
