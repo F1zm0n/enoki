@@ -1,36 +1,72 @@
 package configs
 
 import (
+	"bufio"
 	"os"
+	"regexp"
 	"strings"
 
 	apperror "github.com/F1zm0n/enoki/enoki/utils/pkg/AppError"
 )
 
-// ReadConfig reads the config by the given path and returns map
-// with config data, if error returns apperror.ErrReadingConfig
-func ReadConfig(path string) (map[string]string, error) {
-	f, err := os.OpenFile(path, os.O_RDONLY|os.O_APPEND|os.O_CREATE, 0644)
+type ConfigApp struct {
+	Config      map[string]string
+	MirrorLinks []string
+}
+
+// ReadConfig reads the config by the given path reads the map
+// to the ConfigApp struct, if there are any mirror_link_{0-9}
+// it will write in ConfigApp.MirrorLinks and will consider as a mirror link.
+//
+// So it will write to the map ConfigApp.Config and ConfigApp.MirrorLinks
+// and will return an error apperror.ErrReadingConfig or err if something
+// goes wrong.
+func (c *ConfigApp) ReadConfig(path string) error {
+	dat, err := os.ReadFile(path)
 	if err != nil {
-		return nil, apperror.ErrReadingConfig
-	}
-	defer f.Close()
-
-	var dat []byte
-
-	_, err = f.Read(dat)
-	if err != nil {
-		return nil, apperror.ErrReadingConfig
+		return apperror.ErrReadingConfig
 	}
 
-	config := make(map[string]string)
-	data := strings.Split(string(dat), "\n")
-	for _, conf := range data {
+	scanner := bufio.NewScanner(strings.NewReader(string(dat)))
+	scanner.Split(bufio.ScanLines)
 
-		field := strings.TrimSpace(conf)
-		confArr := strings.Split(field, "=")
+	for scanner.Scan() {
+		t := scanner.Text()
+		if t == "" {
+			continue
+		}
 
-		config[confArr[0]] = confArr[1]
+		str := strings.TrimSpace(t)
+
+		if strings.Split(str, "")[0] == "#" {
+			continue
+		}
+
+		if !strings.Contains(str, "=") {
+			continue
+		}
+
+		arr := strings.Split(str, "=")
+
+		k := strings.TrimSpace(arr[0])
+		v := strings.TrimSpace(arr[1])
+
+		reg, err := regexp.Compile(`mirror_link_\d`)
+		if err != nil {
+			return err
+		}
+
+		if reg.MatchString(k) || k == "mirror_link" {
+			c.MirrorLinks = append(c.MirrorLinks, v)
+			continue
+		}
+		c.Config[k] = v
+
 	}
-	return config, nil
+
+	if len(c.Config) == 0 {
+		return apperror.ErrReadingConfig
+	}
+
+	return nil
 }

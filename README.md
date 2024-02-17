@@ -1,7 +1,7 @@
 enoki is a complete package manager that contains a lot of package manager from different linux distributions.
 Currently in development. Feel free to contribute
 
-- [ ] (Pacman) add good parser for config file
+- [x] (Pacman) add good parser for config file
 - [ ] (Pacman) solve the issue with mirror links, that not every mirror link has package
 - [ ] (Pacman) some packages not being in actual arch repository e.g. sh package
 - [ ] (Pacman) test things out
