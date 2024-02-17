@@ -11,9 +11,26 @@ import (
 	scrapper "github.com/F1zm0n/enoki/enoki/utils/pkg/getter"
 )
 
-// GetMirrorHost makes request to arch mirror link repository and appends to
+// GetMirrorsPacman gets the fastest mirrors to respond and appends it to
+// PacmanApp.MirrorLinks string slice
+func (a *PacmanApp) GetMirrorsPacman() error {
+	url := "https://archlinux.org/mirrorlist/?country=all&protocol=http&protocol=https&ip_version=4&use_mirror_status=on"
+	dat, err := scrapper.GetReq(url)
+	if err != nil {
+		return err
+	}
+
+	arr, err := ParseMirrors(dat)
+	if err != nil {
+		return err
+	}
+	a.MirrorLinks = arr
+	return nil
+}
+
+// GetMirrorCountryHost makes request to arch mirror link repository and appends to
 // PacmanApp struct MirrorLinks field
-func (a *PacmanApp) GetMirrorHost(conf map[string]string) error {
+func (a *PacmanApp) GetMirrorCountryHost(conf map[string]string) error {
 	if country, ok := conf["country"]; ok {
 
 		url := fmt.Sprintf(

@@ -22,7 +22,7 @@ type IPacmanApp interface {
 	SearchForPkgs() error
 	// GetMirrorHost accepts config map and appends a slice of mirror hosts
 	// to a PacmanApp.MirrorLinks return an error
-	GetMirrorHost(conf map[string]string) error
+	GetMirrorCountryHost(conf map[string]string) error
 }
 
 // TODO: сделай нормальный конфиг парсер и миррор линки нормальные
