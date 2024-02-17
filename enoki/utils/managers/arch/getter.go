@@ -5,10 +5,12 @@ import (
 	"fmt"
 
 	"github.com/F1zm0n/enoki/enoki/utils/entity"
-	apperror "github.com/F1zm0n/enoki/enoki/utils/pkg/AppErro"
+	apperror "github.com/F1zm0n/enoki/enoki/utils/pkg/AppError"
 	scrapper "github.com/F1zm0n/enoki/enoki/utils/pkg/getter"
 )
 
+// GetFromPacman gets package from pacman repository by mirror link
+// so PacmanApp.MirrorLinks slice is required to make request try and get the package
 func (a *PacmanApp) GetFromPacman(info entity.ArchInfo) ([]byte, error) {
 	for _, hoster := range a.MirrorLinks {
 		for _, archi := range a.Arches {
@@ -30,5 +32,5 @@ func (a *PacmanApp) GetFromPacman(info entity.ArchInfo) ([]byte, error) {
 			}
 		}
 	}
-	return nil, ErrNoSuchPackage
+	return nil, apperror.ErrNoSuchPkg
 }

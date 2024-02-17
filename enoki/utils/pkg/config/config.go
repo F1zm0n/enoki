@@ -3,12 +3,16 @@ package configs
 import (
 	"os"
 	"strings"
+
+	apperror "github.com/F1zm0n/enoki/enoki/utils/pkg/AppError"
 )
 
+// ReadConfig reads the config by the given path and returns map
+// with config data, if error returns apperror.ErrReadingConfig
 func ReadConfig(path string) (map[string]string, error) {
 	f, err := os.OpenFile(path, os.O_RDONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
-		return nil, err
+		return nil, apperror.ErrReadingConfig
 	}
 	defer f.Close()
 
@@ -16,7 +20,7 @@ func ReadConfig(path string) (map[string]string, error) {
 
 	_, err = f.Read(dat)
 	if err != nil {
-		return nil, err
+		return nil, apperror.ErrReadingConfig
 	}
 
 	config := make(map[string]string)
