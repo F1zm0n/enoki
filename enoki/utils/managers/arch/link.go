@@ -73,7 +73,7 @@ func (a *PacmanApp) GetMirrorCountryHost(conf map[string]string) error {
 func ParseMirrors(data []byte) ([]string, error) {
 	f := bytes.NewReader(data)
 
-	arr := make([]string, 0)
+	arr := make([]string, 0, 700)
 
 	scanner := bufio.NewScanner(f)
 

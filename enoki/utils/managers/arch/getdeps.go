@@ -50,7 +50,7 @@ func (a *PacmanApp) SearchForPkgs() error {
 		}
 
 	}
-	arr := make([]string, 0)
+	arr := make([]string, 0, 200)
 	for key := range deps {
 		info, err := GetPkgSo(key)
 		if err != nil {

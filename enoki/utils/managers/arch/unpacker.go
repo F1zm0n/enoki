@@ -16,7 +16,7 @@ import (
 
 func (a *PacmanApp) UnpakAndInstPacman(info entity.ArchInfo) ([]string, error) {
 	fmt.Println(info.PkgName)
-	arr := make([]string, 0)
+	arr := make([]string, 0, 1000)
 	data, err := a.GetFromPacman(info)
 	if err != nil {
 		return nil, err
